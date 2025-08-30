@@ -220,7 +220,6 @@
     <div class="api-selector">
       <h4>🔌 Selecionar API de Dados:</h4>
       <div class="api-option active" data-api="firebase" onclick="switchAPI('firebase')">🔥 Firebase (Recomendado)</div>
-      <div class="api-option" data-api="jsonbin" onclick="switchAPI('jsonbin')">📦 JSONBin</div>
       <div class="api-option" data-api="demo" onclick="switchAPI('demo')">🎭 Dados Demo</div>
     </div>
     
@@ -303,70 +302,60 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+
   <script>
     class HaxballStatsTracker {
       constructor() {
         this.currentAPI = 'firebase';
+        this.firebaseInitialized = false;
+        
+        // Configuração do Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2StS7Gz-ikxyt8kc0cSRzF_e7eL3FeiM",
+          authDomain: "jojovius-f5de7.firebaseapp.com",
+          databaseURL: "https://jojovius-f5de7-default-rtdb.firebaseio.com",
+          projectId: "jojovius-f5de7",
+          storageBucket: "jojovius-f5de7.appspot.com",
+          messagingSenderId: "629248865232",
+          appId: "1:629248865232:web:4e74d888f57161cedfffd5"
+        };
+
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          this.db = firebase.database();
+          this.firebaseInitialized = true;
+          console.log('Firebase inicializado com sucesso');
+        } catch (error) {
+          console.error('Erro ao inicializar Firebase:', error);
+        }
+
         this.apis = {
           firebase: {
             name: 'Firebase',
-            baseUrl: 'https://jojovius-f5de7-default-rtdb.firebaseio.com/',
             get: async (key) => {
-              const response = await fetch(`${this.apis.firebase.baseUrl}/stats/${key}.json`);
-              const data = await response.json();
-              return data || 0;
-            },
-            increment: async (key, amount = 1) => {
-              const current = await this.apis.firebase.get(key);
-              const newValue = (current || 0) + amount;
-              await fetch(`${this.apis.firebase.baseUrl}/stats/${key}.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newValue)
-              });
-              return newValue;
-            }
-          },
-          jsonbin: {
-            name: 'JSONBin',
-            binId: '673cf2e5acd3cb34a8b6a8f3', // Substitua pelo seu Bin ID
-            apiKey: '$2a$10$8Z4vUWLEUqoMuF7J4DfxmuK8VyLdEQz3GpQqIg.Oa1XhV2Nk5W8y6', // Substitua pela sua API Key
-            get: async (key) => {
+              if (!this.firebaseInitialized) throw new Error('Firebase não inicializado');
               try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${this.apis.jsonbin.binId}`, {
-                  headers: { 'X-Master-Key': this.apis.jsonbin.apiKey }
-                });
-                const data = await response.json();
-                return data.record[key] || 0;
-              } catch {
+                const snapshot = await this.db.ref(`stats/${key}`).once('value');
+                return snapshot.val() || 0;
+              } catch (error) {
+                console.error('Erro Firebase get:', error);
                 return 0;
               }
             },
             increment: async (key, amount = 1) => {
+              if (!this.firebaseInitialized) throw new Error('Firebase não inicializado');
               try {
-                // Primeiro pega os dados atuais
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${this.apis.jsonbin.binId}`, {
-                  headers: { 'X-Master-Key': this.apis.jsonbin.apiKey }
+                await this.db.ref(`stats/${key}`).transaction((current) => {
+                  return (current || 0) + amount;
                 });
-                const currentData = await response.json();
-                const stats = currentData.record || {};
-                
-                // Incrementa o valor
-                stats[key] = (stats[key] || 0) + amount;
-                
-                // Atualiza no JSONBin
-                await fetch(`https://api.jsonbin.io/v3/b/${this.apis.jsonbin.binId}`, {
-                  method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': this.apis.jsonbin.apiKey
-                  },
-                  body: JSON.stringify(stats)
-                });
-                
-                return stats[key];
+                const snapshot = await this.db.ref(`stats/${key}`).once('value');
+                return snapshot.val() || 0;
               } catch (error) {
-                console.warn('JSONBin error:', error);
+                console.error('Erro Firebase increment:', error);
                 return 0;
               }
             }
@@ -385,11 +374,11 @@
               langTr: Math.floor(Math.random() * 400) + 100
             },
             get: async (key) => {
-              await new Promise(resolve => setTimeout(resolve, 500)); // Simula delay
+              await new Promise(resolve => setTimeout(resolve, 300));
               return this.apis.demo.data[key] || 0;
             },
             increment: async (key, amount = 1) => {
-              await new Promise(resolve => setTimeout(resolve, 300));
+              await new Promise(resolve => setTimeout(resolve, 200));
               this.apis.demo.data[key] = (this.apis.demo.data[key] || 0) + amount;
               return this.apis.demo.data[key];
             }
@@ -531,27 +520,52 @@
 
       // Métodos públicos para tracking
       async trackVisit() {
-        await this.increment(this.counters.totalVisits);
-        await this.increment(this.counters.todayVisits);
+        try {
+          await this.increment(this.counters.totalVisits);
+          await this.increment(this.counters.todayVisits);
+          console.log('Visita rastreada com sucesso');
+        } catch (error) {
+          console.error('Erro ao rastrear visita:', error);
+        }
       }
 
       async trackDownload() {
-        await this.increment(this.counters.downloads);
+        try {
+          await this.increment(this.counters.downloads);
+          console.log('Download rastreado com sucesso');
+        } catch (error) {
+          console.error('Erro ao rastrear download:', error);
+        }
       }
 
       async trackDraw() {
-        await this.increment(this.counters.drawActivations);
+        try {
+          await this.increment(this.counters.drawActivations);
+          console.log('Ativação de desenho rastreada com sucesso');
+        } catch (error) {
+          console.error('Erro ao rastrear ativação de desenho:', error);
+        }
       }
 
       async trackLanguageChange(lang) {
-        await this.increment(this.counters.languageChanges);
-        if (lang === 'pt') await this.increment(this.counters.langPt);
-        if (lang === 'en') await this.increment(this.counters.langEn);
-        if (lang === 'tr') await this.increment(this.counters.langTr);
+        try {
+          await this.increment(this.counters.languageChanges);
+          if (lang === 'pt') await this.increment(this.counters.langPt);
+          if (lang === 'en') await this.increment(this.counters.langEn);
+          if (lang === 'tr') await this.increment(this.counters.langTr);
+          console.log(`Mudança de idioma para ${lang} rastreada com sucesso`);
+        } catch (error) {
+          console.error('Erro ao rastrear mudança de idioma:', error);
+        }
       }
 
-      async trackDiscord() {
-        await this.increment(this.counters.discordClicks);
+      async trackDiscordClick() {
+        try {
+          await this.increment(this.counters.discordClicks);
+          console.log('Clique no Discord rastreado com sucesso');
+        } catch (error) {
+          console.error('Erro ao rastrear clique no Discord:', error);
+        }
       }
     }
 
@@ -569,13 +583,16 @@
 
     // Carrega estatísticas quando a página abre
     document.addEventListener('DOMContentLoaded', async () => {
-      await statsTracker.trackVisit();
-      await statsTracker.loadAllStats();
-      
-      // Auto-refresh a cada 2 minutos
-      setInterval(() => {
-        statsTracker.loadAllStats();
-      }, 2 * 60 * 1000);
+      // Espera um pouco para garantir que o Firebase está inicializado
+      setTimeout(async () => {
+        await statsTracker.trackVisit();
+        await statsTracker.loadAllStats();
+        
+        // Auto-refresh a cada 2 minutos
+        setInterval(() => {
+          statsTracker.loadAllStats();
+        }, 2 * 60 * 1000);
+      }, 1000);
     });
 
     // Torna a classe disponível globalmente para uso nos sites
