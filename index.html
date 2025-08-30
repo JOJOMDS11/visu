@@ -74,23 +74,22 @@
 
   <script>
     const BASE_URL = 'https://api.countapi.xyz';
-    const NAMESPACE = 'haxballboard'; // Crie esse namespace no CountAPI
 
     const COUNTERS = {
-      total: 'total-visits',
-      today: 'today-visits-' + new Date().toISOString().split('T')[0],
-      downloads: 'png-downloads',
-      drawActivations: 'draw-activations',
-      languageChanges: 'language-changes',
-      discordClicks: 'discord-clicks',
-      pt: 'lang-pt',
-      en: 'lang-en',
-      tr: 'lang-tr'
+      total: 'haxball-board-total-visits',
+      today: 'haxball-board-today-visits-' + new Date().toISOString().split('T')[0],
+      downloads: 'haxball-board-png-downloads',
+      drawActivations: 'haxball-board-draw-activations',
+      languageChanges: 'haxball-board-language-changes',
+      discordClicks: 'haxball-board-discord-clicks',
+      pt: 'haxball-board-lang-pt',
+      en: 'haxball-board-lang-en',
+      tr: 'haxball-board-lang-tr'
     };
 
     async function getCounter(counter) {
       try {
-        const res = await fetch(`${BASE_URL}/get/${NAMESPACE}/${counter}`);
+        const res = await fetch(`${BASE_URL}/get/${counter}`);
         const data = await res.json();
         return data.value || 0;
       } catch {
@@ -100,7 +99,7 @@
 
     async function incrementCounter(counter) {
       try {
-        const res = await fetch(`${BASE_URL}/hit/${NAMESPACE}/${counter}`);
+        const res = await fetch(`${BASE_URL}/hit/${counter}`);
         const data = await res.json();
         return data.value || 0;
       } catch {
