@@ -74,26 +74,36 @@
 
   <script>
     const BASE_URL = 'https://api.countapi.xyz';
-    const FULL_KEY = 'ut_9bXdMNwwVuyTtwXxJiIYvktbNyBMoK7zgIlALusR'; // Sua key do CountAPI
+    const NAMESPACE = 'haxballboard'; // Crie esse namespace no CountAPI
 
-    async function getCounterData() {
+    const COUNTERS = {
+      total: 'total-visits',
+      today: 'today-visits-' + new Date().toISOString().split('T')[0],
+      downloads: 'png-downloads',
+      drawActivations: 'draw-activations',
+      languageChanges: 'language-changes',
+      discordClicks: 'discord-clicks',
+      pt: 'lang-pt',
+      en: 'lang-en',
+      tr: 'lang-tr'
+    };
+
+    async function getCounter(counter) {
       try {
-        const res = await fetch(`${BASE_URL}/get/${FULL_KEY}`);
+        const res = await fetch(`${BASE_URL}/get/${NAMESPACE}/${counter}`);
         const data = await res.json();
         return data.value || 0;
-      } catch (err) {
-        console.error('Erro ao buscar contador:', err);
+      } catch {
         return 0;
       }
     }
 
-    async function incrementCounter() {
+    async function incrementCounter(counter) {
       try {
-        const res = await fetch(`${BASE_URL}/hit/${FULL_KEY}`);
+        const res = await fetch(`${BASE_URL}/hit/${NAMESPACE}/${counter}`);
         const data = await res.json();
         return data.value || 0;
-      } catch (err) {
-        console.error('Erro ao incrementar contador:', err);
+      } catch {
         return 0;
       }
     }
@@ -101,25 +111,39 @@
     async function loadAllStats() {
       const container = document.querySelector('.stats-container');
       container.classList.add('loading');
+
       try {
-        const value = await getCounterData();
-        document.getElementById('totalVisits').textContent = value.toLocaleString();
-        document.getElementById('todayVisits').textContent = value.toLocaleString(); // aqui pode duplicar se quiser separar
-        document.getElementById('downloads').textContent = value.toLocaleString();
-        document.getElementById('drawActivations').textContent = value.toLocaleString();
-        document.getElementById('languageChanges').textContent = value.toLocaleString();
-        document.getElementById('discordClicks').textContent = value.toLocaleString();
-        document.getElementById('ptCount').textContent = value.toLocaleString();
-        document.getElementById('enCount').textContent = value.toLocaleString();
-        document.getElementById('trCount').textContent = value.toLocaleString();
+        const [total, today, downloads, draw, langChange, discord, pt, en, tr] = await Promise.all([
+          getCounter(COUNTERS.total),
+          getCounter(COUNTERS.today),
+          getCounter(COUNTERS.downloads),
+          getCounter(COUNTERS.drawActivations),
+          getCounter(COUNTERS.languageChanges),
+          getCounter(COUNTERS.discordClicks),
+          getCounter(COUNTERS.pt),
+          getCounter(COUNTERS.en),
+          getCounter(COUNTERS.tr)
+        ]);
+
+        document.getElementById('totalVisits').textContent = total.toLocaleString();
+        document.getElementById('todayVisits').textContent = today.toLocaleString();
+        document.getElementById('downloads').textContent = downloads.toLocaleString();
+        document.getElementById('drawActivations').textContent = draw.toLocaleString();
+        document.getElementById('languageChanges').textContent = langChange.toLocaleString();
+        document.getElementById('discordClicks').textContent = discord.toLocaleString();
+        document.getElementById('ptCount').textContent = pt.toLocaleString();
+        document.getElementById('enCount').textContent = en.toLocaleString();
+        document.getElementById('trCount').textContent = tr.toLocaleString();
+
       } finally {
         container.classList.remove('loading');
       }
     }
 
-    // Incrementa contador ao abrir página
+    // Incrementa contadores ao abrir página
     document.addEventListener('DOMContentLoaded', async () => {
-      await incrementCounter();
+      await incrementCounter(COUNTERS.total);
+      await incrementCounter(COUNTERS.today);
       loadAllStats();
     });
   </script>
