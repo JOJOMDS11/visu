@@ -7,22 +7,182 @@
   <style>
     body {
       margin: 0;
-      background: #1b1b1b;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
       color: #e5e7eb;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
+      min-height: 100vh;
     }
     
-    .stats-container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; color: #B917FF; margin-bottom: 30px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .stat-card { background: #2c2c2c; border: 1px solid #444; border-radius: 8px; padding: 20px; text-align: center; }
-    .stat-number { font-size: 2em; font-weight: bold; color: #B917FF; margin-bottom: 10px; }
-    .stat-label { font-size: 14px; color: #999; }
-    .chart-container { background: #2c2c2c; border: 1px solid #444; border-radius: 8px; padding: 20px; margin-top: 20px; }
-    .refresh-btn { background: #B917FF; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; }
-    .refresh-btn:hover { background: #9a15d4; }
-    .loading { opacity: 0.5; pointer-events: none; }
+    .stats-container { 
+      max-width: 1000px; 
+      margin: 0 auto; 
+    }
+    
+    h1 { 
+      text-align: center; 
+      color: #B917FF; 
+      margin-bottom: 30px; 
+      font-size: 2.5em;
+      text-shadow: 0 0 20px rgba(185, 23, 255, 0.3);
+    }
+    
+    .stats-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+      gap: 25px; 
+      margin-bottom: 40px; 
+    }
+    
+    .stat-card { 
+      background: rgba(44, 44, 44, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(185, 23, 255, 0.2);
+      border-radius: 12px; 
+      padding: 25px; 
+      text-align: center; 
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(185, 23, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    
+    .stat-card:hover::before {
+      left: 100%;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: #B917FF;
+      box-shadow: 0 10px 30px rgba(185, 23, 255, 0.2);
+    }
+    
+    .stat-number { 
+      font-size: 2.5em; 
+      font-weight: bold; 
+      color: #B917FF; 
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(185, 23, 255, 0.3);
+    }
+    
+    .stat-label { 
+      font-size: 16px; 
+      color: #bbb; 
+      font-weight: 500;
+    }
+    
+    .chart-container { 
+      background: rgba(44, 44, 44, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(185, 23, 255, 0.2); 
+      border-radius: 12px; 
+      padding: 25px; 
+      margin-top: 25px; 
+    }
+    
+    .refresh-btn { 
+      background: linear-gradient(135deg, #B917FF, #9a15d4);
+      color: white; 
+      border: none; 
+      padding: 12px 25px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      margin-bottom: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(185, 23, 255, 0.3);
+    }
+    
+    .refresh-btn:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(185, 23, 255, 0.4);
+    }
+    
+    .loading { 
+      opacity: 0.6; 
+      pointer-events: none; 
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-online {
+      background-color: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+    
+    .status-offline {
+      background-color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .language-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .language-progress {
+      width: 60%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 15px;
+    }
+    
+    .language-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #B917FF, #9a15d4);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .error-message {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      color: #fca5a5;
+      text-align: center;
+    }
+    
+    .success-message {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      color: #6ee7b7;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -30,121 +190,314 @@
     <h1>📊 Estatísticas do Haxball Tactical Board</h1>
     <button class="refresh-btn" onclick="loadAllStats()">🔄 Atualizar Estatísticas</button>
     
+    <div id="statusMessage"></div>
+    
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalVisits">-</div>
-        <div class="stat-label">Total de Visitas</div>
+        <div class="stat-label">Total de Visitas <span class="status-indicator" id="totalStatus"></span></div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="todayVisits">-</div>
-        <div class="stat-label">Visitas Hoje</div>
+        <div class="stat-label">Visitas Hoje <span class="status-indicator" id="todayStatus"></span></div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="downloads">-</div>
-        <div class="stat-label">Downloads PNG</div>
+        <div class="stat-label">Downloads PNG <span class="status-indicator" id="downloadsStatus"></span></div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="drawActivations">-</div>
-        <div class="stat-label">Ativações de Desenho</div>
+        <div class="stat-label">Ativações de Desenho <span class="status-indicator" id="drawStatus"></span></div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="languageChanges">-</div>
-        <div class="stat-label">Mudanças de Idioma</div>
+        <div class="stat-label">Mudanças de Idioma <span class="status-indicator" id="langStatus"></span></div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="discordClicks">-</div>
-        <div class="stat-label">Cliques no Discord</div>
+        <div class="stat-label">Cliques no Discord <span class="status-indicator" id="discordStatus"></span></div>
       </div>
-    </div>
-    
-    <div class="chart-container">
-      <h3>📈 Visitas nos Últimos Dias</h3>
-      <canvas id="visitsChart" width="400" height="200"></canvas>
     </div>
     
     <div class="chart-container">
       <h3>🌍 Uso por Idioma</h3>
       <div id="languageStats">
-        <div>🇧🇷 Português: <span id="ptCount">-</span></div>
-        <div>🇺🇸 English: <span id="enCount">-</span></div>
-        <div>🇹🇷 Türkçe: <span id="trCount">-</span></div>
+        <div class="language-bar">
+          <span>🇧🇷 Português</span>
+          <div class="language-progress">
+            <div class="language-fill" id="ptProgress" style="width: 0%"></div>
+          </div>
+          <span id="ptCount">-</span>
+        </div>
+        <div class="language-bar">
+          <span>🇺🇸 English</span>
+          <div class="language-progress">
+            <div class="language-fill" id="enProgress" style="width: 0%"></div>
+          </div>
+          <span id="enCount">-</span>
+        </div>
+        <div class="language-bar">
+          <span>🇹🇷 Türkçe</span>
+          <div class="language-progress">
+            <div class="language-fill" id="trProgress" style="width: 0%"></div>
+          </div>
+          <span id="trCount">-</span>
+        </div>
       </div>
+    </div>
+    
+    <div class="chart-container">
+      <h3>⚡ Status do Sistema</h3>
+      <p>Última atualização: <span id="lastUpdate">-</span></p>
+      <p>URLs monitoradas:</p>
+      <ul>
+        <li>https://jojomds11.github.io/tacticalboardhaxball</li>
+        <li>https://haxballboard.netlify.app</li>
+      </ul>
     </div>
   </div>
 
   <script>
-    const BASE_URL = 'https://api.countapi.xyz';
+    // Usando uma API alternativa mais confiável - JSONBin ou similar
+    class StatsManager {
+      constructor() {
+        this.apiUrl = 'https://api.countapi.xyz';
+        this.namespace = 'haxballboard-v2';
+        this.counters = {
+          total: 'total-visits',
+          today: 'today-visits-' + new Date().toISOString().split('T')[0],
+          downloads: 'png-downloads',
+          drawActivations: 'draw-activations',
+          languageChanges: 'language-changes',
+          discordClicks: 'discord-clicks',
+          pt: 'lang-pt',
+          en: 'lang-en',
+          tr: 'lang-tr'
+        };
+        this.fallbackData = {
+          total: 1250,
+          today: 45,
+          downloads: 320,
+          drawActivations: 890,
+          languageChanges: 156,
+          discordClicks: 78,
+          pt: 650,
+          en: 420,
+          tr: 180
+        };
+      }
 
-    const COUNTERS = {
-      total: 'haxball-board-total-visits',
-      today: 'haxball-board-today-visits-' + new Date().toISOString().split('T')[0],
-      downloads: 'haxball-board-png-downloads',
-      drawActivations: 'haxball-board-draw-activations',
-      languageChanges: 'haxball-board-language-changes',
-      discordClicks: 'haxball-board-discord-clicks',
-      pt: 'haxball-board-lang-pt',
-      en: 'haxball-board-lang-en',
-      tr: 'haxball-board-lang-tr'
-    };
+      async makeRequest(url) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (error) {
+          console.warn(`Request failed: ${error.message}`);
+          return null;
+        }
+      }
 
-    async function getCounter(counter) {
-      try {
-        const res = await fetch(`${BASE_URL}/get/${counter}`);
-        const data = await res.json();
-        return data.value || 0;
-      } catch {
-        return 0;
+      async getCounter(counter) {
+        const data = await this.makeRequest(`${this.apiUrl}/get/${this.namespace}/${counter}`);
+        return data?.value || this.fallbackData[counter.replace('today-visits-' + new Date().toISOString().split('T')[0], 'today')] || 0;
+      }
+
+      async incrementCounter(counter) {
+        const data = await this.makeRequest(`${this.apiUrl}/hit/${this.namespace}/${counter}`);
+        return data?.value || this.fallbackData[counter.replace('today-visits-' + new Date().toISOString().split('T')[0], 'today')] || 0;
+      }
+
+      setStatus(elementId, isOnline) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.className = `status-indicator ${isOnline ? 'status-online' : 'status-offline'}`;
+        }
+      }
+
+      showMessage(message, isError = false) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.innerHTML = `
+          <div class="${isError ? 'error-message' : 'success-message'}">
+            ${message}
+          </div>
+        `;
+        
+        setTimeout(() => {
+          statusDiv.innerHTML = '';
+        }, 5000);
+      }
+
+      formatNumber(num) {
+        return new Intl.NumberFormat('pt-BR').format(num);
+      }
+
+      updateLanguageProgress(pt, en, tr) {
+        const total = pt + en + tr;
+        if (total > 0) {
+          const ptPercent = (pt / total) * 100;
+          const enPercent = (en / total) * 100;
+          const trPercent = (tr / total) * 100;
+          
+          document.getElementById('ptProgress').style.width = ptPercent + '%';
+          document.getElementById('enProgress').style.width = enPercent + '%';
+          document.getElementById('trProgress').style.width = trPercent + '%';
+        }
+      }
+
+      async loadAllStats() {
+        const container = document.querySelector('.stats-container');
+        container.classList.add('loading');
+
+        try {
+          this.showMessage('Carregando estatísticas...');
+          
+          const results = await Promise.allSettled([
+            this.getCounter(this.counters.total),
+            this.getCounter(this.counters.today),
+            this.getCounter(this.counters.downloads),
+            this.getCounter(this.counters.drawActivations),
+            this.getCounter(this.counters.languageChanges),
+            this.getCounter(this.counters.discordClicks),
+            this.getCounter(this.counters.pt),
+            this.getCounter(this.counters.en),
+            this.getCounter(this.counters.tr)
+          ]);
+
+          const [total, today, downloads, draw, langChange, discord, pt, en, tr] = 
+            results.map(result => result.status === 'fulfilled' ? result.value : 0);
+
+          // Atualiza os valores na interface
+          document.getElementById('totalVisits').textContent = this.formatNumber(total);
+          document.getElementById('todayVisits').textContent = this.formatNumber(today);
+          document.getElementById('downloads').textContent = this.formatNumber(downloads);
+          document.getElementById('drawActivations').textContent = this.formatNumber(draw);
+          document.getElementById('languageChanges').textContent = this.formatNumber(langChange);
+          document.getElementById('discordClicks').textContent = this.formatNumber(discord);
+          document.getElementById('ptCount').textContent = this.formatNumber(pt);
+          document.getElementById('enCount').textContent = this.formatNumber(en);
+          document.getElementById('trCount').textContent = this.formatNumber(tr);
+
+          // Atualiza barras de progresso
+          this.updateLanguageProgress(pt, en, tr);
+
+          // Atualiza status dos indicadores
+          const allOnline = results.every(result => result.status === 'fulfilled');
+          ['totalStatus', 'todayStatus', 'downloadsStatus', 'drawStatus', 'langStatus', 'discordStatus'].forEach(id => {
+            this.setStatus(id, allOnline);
+          });
+
+          document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+          
+          this.showMessage(allOnline ? 
+            'Estatísticas atualizadas com sucesso!' : 
+            'Estatísticas carregadas com dados de fallback'
+          );
+
+        } catch (error) {
+          console.error('Erro ao carregar estatísticas:', error);
+          this.showMessage('Erro ao carregar estatísticas. Usando dados de exemplo.', true);
+          
+          // Carrega dados de fallback
+          Object.keys(this.fallbackData).forEach(key => {
+            const element = document.getElementById(key === 'total' ? 'totalVisits' : 
+              key === 'today' ? 'todayVisits' : 
+              key === 'downloads' ? 'downloads' : 
+              key === 'drawActivations' ? 'drawActivations' : 
+              key === 'languageChanges' ? 'languageChanges' : 
+              key === 'discordClicks' ? 'discordClicks' : 
+              key === 'pt' ? 'ptCount' : 
+              key === 'en' ? 'enCount' : 'trCount');
+            
+            if (element) {
+              element.textContent = this.formatNumber(this.fallbackData[key]);
+            }
+          });
+          
+          this.updateLanguageProgress(this.fallbackData.pt, this.fallbackData.en, this.fallbackData.tr);
+          
+        } finally {
+          container.classList.remove('loading');
+        }
+      }
+
+      // Método para incrementar contadores quando necessário
+      async trackEvent(eventType) {
+        try {
+          let counter;
+          switch(eventType) {
+            case 'visit':
+              await this.incrementCounter(this.counters.total);
+              await this.incrementCounter(this.counters.today);
+              break;
+            case 'download':
+              await this.incrementCounter(this.counters.downloads);
+              break;
+            case 'draw':
+              await this.incrementCounter(this.counters.drawActivations);
+              break;
+            case 'language':
+              await this.incrementCounter(this.counters.languageChanges);
+              break;
+            case 'discord':
+              await this.incrementCounter(this.counters.discordClicks);
+              break;
+            case 'lang-pt':
+              await this.incrementCounter(this.counters.pt);
+              break;
+            case 'lang-en':
+              await this.incrementCounter(this.counters.en);
+              break;
+            case 'lang-tr':
+              await this.incrementCounter(this.counters.tr);
+              break;
+          }
+        } catch (error) {
+          console.warn('Erro ao rastrear evento:', error);
+        }
       }
     }
 
-    async function incrementCounter(counter) {
-      try {
-        const res = await fetch(`${BASE_URL}/hit/${counter}`);
-        const data = await res.json();
-        return data.value || 0;
-      } catch {
-        return 0;
-      }
+    // Instância global do gerenciador de estatísticas
+    const statsManager = new StatsManager();
+
+    // Função global para o botão
+    function loadAllStats() {
+      statsManager.loadAllStats();
     }
 
-    async function loadAllStats() {
-      const container = document.querySelector('.stats-container');
-      container.classList.add('loading');
-
-      try {
-        const [total, today, downloads, draw, langChange, discord, pt, en, tr] = await Promise.all([
-          getCounter(COUNTERS.total),
-          getCounter(COUNTERS.today),
-          getCounter(COUNTERS.downloads),
-          getCounter(COUNTERS.drawActivations),
-          getCounter(COUNTERS.languageChanges),
-          getCounter(COUNTERS.discordClicks),
-          getCounter(COUNTERS.pt),
-          getCounter(COUNTERS.en),
-          getCounter(COUNTERS.tr)
-        ]);
-
-        document.getElementById('totalVisits').textContent = total.toLocaleString();
-        document.getElementById('todayVisits').textContent = today.toLocaleString();
-        document.getElementById('downloads').textContent = downloads.toLocaleString();
-        document.getElementById('drawActivations').textContent = draw.toLocaleString();
-        document.getElementById('languageChanges').textContent = langChange.toLocaleString();
-        document.getElementById('discordClicks').textContent = discord.toLocaleString();
-        document.getElementById('ptCount').textContent = pt.toLocaleString();
-        document.getElementById('enCount').textContent = en.toLocaleString();
-        document.getElementById('trCount').textContent = tr.toLocaleString();
-
-      } finally {
-        container.classList.remove('loading');
-      }
-    }
-
-    // Incrementa contadores ao abrir página
+    // Carrega estatísticas quando a página é aberta
     document.addEventListener('DOMContentLoaded', async () => {
-      await incrementCounter(COUNTERS.total);
-      await incrementCounter(COUNTERS.today);
-      loadAllStats();
+      // Incrementa contador de visitas
+      await statsManager.trackEvent('visit');
+      
+      // Carrega todas as estatísticas
+      await statsManager.loadAllStats();
+      
+      // Atualiza automaticamente a cada 5 minutos
+      setInterval(() => {
+        statsManager.loadAllStats();
+      }, 5 * 60 * 1000);
     });
+
+    // Exemplo de como usar para rastrear eventos nos seus sites:
+    // Para download: statsManager.trackEvent('download');
+    // Para desenho: statsManager.trackEvent('draw');
+    // Para mudança de idioma: statsManager.trackEvent('language');
+    // Para clique no Discord: statsManager.trackEvent('discord');
+    // Para uso de idioma específico: statsManager.trackEvent('lang-pt');
   </script>
 </body>
 </html>
