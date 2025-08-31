@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estatísticas - Haxball Tactical Board</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
+      color: #e5e7eb;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .stats-container { 
+      max-width: 1000px;
+      margin: 0 auto; 
+    }
+    
+    h1 { 
+      text-align: center;
+      color: #B917FF; 
+      margin-bottom: 30px; 
+      font-size: 2.5em;
+      text-shadow: 0 0 20px rgba(185, 23, 255, 0.3);
+    }
+    
+    .stats-grid { 
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+      gap: 25px; 
+      margin-bottom: 40px; 
+    }
+    
+    .stat-card { 
+      background: rgba(44, 44, 44, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(185, 23, 255, 0.2);
+      border-radius: 12px; 
+      padding: 25px; 
+      text-align: center; 
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(185, 23, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    
+    .stat-card:hover::before {
+      left: 100%;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: #B917FF;
+      box-shadow: 0 10px 30px rgba(185, 23, 255, 0.2);
+    }
+    
+    .stat-number { 
+      font-size: 2.5em;
+      font-weight: bold; 
+      color: #B917FF; 
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(185, 23, 255, 0.3);
+    }
+    
+    .stat-label { 
+      font-size: 16px; 
+      color: #bbb;
+      font-weight: 500;
+    }
+    
+    .chart-container { 
+      background: rgba(44, 44, 44, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(185, 23, 255, 0.2); 
+      border-radius: 12px; 
+      padding: 25px; 
+      margin-top: 25px;
+    }
+    
+    .refresh-btn { 
+      background: linear-gradient(135deg, #B917FF, #9a15d4);
+      color: white; 
+      border: none; 
+      padding: 12px 25px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      margin-bottom: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(185, 23, 255, 0.3);
+    }
+    
+    .refresh-btn:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(185, 23, 255, 0.4);
+    }
+    
+    .loading { 
+      opacity: 0.6;
+      pointer-events: none; 
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-online {
+      background-color: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+    
+    .status-offline {
+      background-color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1;
+      }
+      50% { opacity: 0.5;
+      }
+    }
+    
+    .language-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .language-progress {
+      width: 60%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 15px;
+    }
+    
+    .language-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #B917FF, #9a15d4);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .error-message {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      color: #fca5a5;
+      text-align: center;
+    }
+    
+    .success-message {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      color: #6ee7b7;
+      text-align: center;
+    }
+
+    .api-selector {
+      background: rgba(44, 44, 44, 0.8);
+      border: 1px solid rgba(185, 23, 255, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .api-option {
+      display: inline-block;
+      margin: 5px 10px 5px 0;
+      padding: 8px 15px;
+      background: rgba(185, 23, 255, 0.2);
+      border: 1px solid rgba(185, 23, 255, 0.3);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .api-option.active {
+      background: #B917FF;
+      color: white;
+    }
+
+    .api-option:hover {
+      background: rgba(185, 23, 255, 0.4);
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-CqL74lMz.js"></script>
+</head>
+<body>
+  <div class="stats-container">
+    <h1>📊 Estatísticas do Haxball Tactical Board</h1>
+    
+    <div class="api-selector">
+      <h4>🔌 Selecionar API de Dados:</h4>
+      <div class="api-option active" data-api="firebase" onclick="switchAPI('firebase')">🔥 Firebase (Recomendado)</div>
+      <div class="api-option" data-api="demo" onclick="switchAPI('demo')">🎭 Dados Demo</div>
+    </div>
+    
+    <button class="refresh-btn" onclick="loadAllStats()">🔄 Atualizar Estatísticas</button>
+    
+    <div id="statusMessage"></div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalVisits">-</div>
+        <div class="stat-label">Total de Visitas <span class="status-indicator status-offline" id="totalStatus"></span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="todayVisits">-</div>
+        <div class="stat-label">Visitas Hoje <span class="status-indicator status-offline" id="todayStatus"></span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="discordClicks">-</div>
+        <div class="stat-label">Cliques no Discord <span class="status-indicator status-offline" id="discordStatus"></span></div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <h3>🌍 Uso por Idioma</h3>
+      <div id="languageStats">
+        <div class="language-bar">
+          <span>🇧🇷 Português</span>
+          <div class="language-progress">
+            <div class="language-fill" id="ptProgress" style="width: 0%"></div>
+          </div>
+          <span id="ptCount">-</span>
+        </div>
+        <div class="language-bar">
+          <span>🇺🇸 English</span>
+          <div class="language-progress">
+            <div class="language-fill" id="enProgress" style="width: 0%"></div>
+          </div>
+          <span id="enCount">-</span>
+        </div>
+        <div class="language-bar">
+          <span>🇹🇷 Türkçe</span>
+          <div class="language-progress">
+            <div class="language-fill" id="trProgress" style="width: 0%"></div>
+          </div>
+          <span id="trCount">-</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <h3>⚡ Informações do Sistema</h3>
+      <p><strong>API Atual:</strong> <span id="currentAPI">Firebase</span></p>
+      <p><strong>Última atualização:</strong> <span id="lastUpdate">-</span></p>
+      <p><strong>URLs monitoradas:</strong></p>
+      <ul>
+        <li>https://jojomds11.github.io/tacticalboardhaxball</li>
+        <li>https://haxballboard.netlify.app</li>
+      </ul>
+      
+      <h4>📋 Como Implementar nos Seus Sites:</h4>
+      <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; overflow-x: auto;">
+        <div>// Adicione este código aos seus sites:</div>
+        <div style="color: #10b981;">const tracker = new HaxballStatsTracker();</div>
+        <div style="color: #fbbf24;">tracker.trackVisit(); // Ao carregar página</div>
+        <div style="color: #fbbf24;">tracker.trackLanguageChange('pt'); // Ao mudar idioma</div>
+        <div style="color: #fbbf24;">tracker.trackDiscordClick(); // Ao clicar no Discord</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+
+</body>
+</html>
